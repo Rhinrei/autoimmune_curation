@@ -75,7 +75,3 @@ For each evaluated relation, the following fields were added:
 - Routine clinical or metabolic parameters  
 - General review statements without disease-specific evidence  
 - Hypothesis-only or conceptual papers  
-
-
-## Repository Structure
-
