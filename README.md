@@ -1,76 +1,81 @@
-Project Summary
+# Manual Curation of Chemical-Disease Relations in Autoimmune Disorders
 
-Manual Curation and Validation of Chemical–Disease Relations in Autoimmune Disorders
+This repository contains a small-scale manual curation project focused on validating
+automatically extracted **CHEMICAL-DISEASE relations** from biomedical literature,
+with an emphasis on autoimmune and immune-mediated diseases.
 
-In this project, I performed a focused manual curation of automatically extracted CHEMICAL–DISEASE relations from biomedical literature, with an emphasis on autoimmune and immune-mediated diseases (e.g. multiple sclerosis, lupus, sarcoidosis, autoimmune diabetes).
+The project demonstrates evidence-aware biological data curation rather than
+model development, with particular attention to false positives, weak evidence,
+and experimental artifacts possibly produced by automated BioNLP pipelines.
 
-The goal was to evaluate the biological validity, specificity, and evidence strength of extracted relations and to distinguish true disease-relevant associations from experimental artifacts, background knowledge, or unsupported hypotheses.
+## Source Dataset
 
-Scope of Work
-1. Relation validation
+The curated relations in this project are based on a subset of the **PubTrends relation extraction dataset**
+(Release of **June 18, 2020**) https://lp.jetbrains.com/research/paper_analyzer/projects/.
 
-Each candidate relation was manually reviewed at the abstract level and classified as:
+## Project Motivation
 
-TRUE — supported by explicit experimental, clinical, or epidemiological evidence
+Automated text-mining systems are highly effective at extracting candidate
+chemical-disease relations, but often lack the ability to distinguish:
 
-FALSE — unsupported, overly general, or representing non-annotatable contexts
+- disease-relevant biological associations  
+- experimental or therapeutic interventions  
+- hypothesis-level or review-only statements  
+- negative or non-specific evidence  
 
-Special attention was paid to negative evidence, which was explicitly preserved rather than discarded.
+The goal of this project was to manually evaluate such extracted relations
+and convert them into biologically defensible structured knowledge.
 
-2. Evidence-aware annotation
+## Scope of Work
 
-For each evaluated relation, I annotated:
+### Manual validation of relations
+Each candidate CHEMICAL-DISEASE relation was reviewed at the abstract level and
+classified as either:
 
-Polarity
+- **TRUE** — supported by explicit experimental, clinical, or epidemiological evidence  
+- **FALSE** — unsupported, non-specific, or not suitable for structured annotation  
 
-positive (asserted association)
+Negative evidence was explicitly preserved and annotated.
 
-negative (explicitly disproven)
+### Evidence-aware annotation fields
 
-speculative (hypothesis-level statements)
+For each evaluated relation, the following fields were added:
 
-ManualConfidence
-Reflecting author commitment, based on:
+- **ManualLabel**  
+  TRUE or FALSE based on biological validity
 
-language (e.g. may, suggests vs induces, results in)
+- **Polarity**  
+  - positive — asserted association  
+  - negative — explicitly disproven  
+  - speculative — hypothesis-level statements  
 
-study type (case report, cohort, animal model)
+- **ManualConfidence**  
+  Reflects the degree of commitment expressed by the authors, based on:
+  - language (e.g. *may suggest* vs *induces*)
+  - study type (case report, cohort, animal model)
+  - specificity and reproducibility  
 
-reproducibility and specificity
+- **EvidenceSentence**  
+  A minimal sentence directly supporting or refuting the relation
 
-EvidenceSentence
-A minimal, self-contained sentence supporting (or refuting) the relation.
+- **ErrorType** (for FALSE relations)  
+  Used to characterize common failure modes of automated extraction
 
-3. Differentiation of relation types
+## Annotation Principles
 
-I consistently distinguished between:
+### Annotated as valid relations
+- Disease-specific biochemical or immunological markers  
+- Experimentally demonstrated disease mechanisms  
+- Reproducible animal models inducing autoimmune phenotypes  
 
-Valid disease markers or mechanisms
+### Explicitly excluded
+- Therapeutic or tolerizing interventions (e.g. vaccines, peptides)  
+- Experimental triggers or positive controls  
+- Diagnostic or imaging agents  
+- Routine clinical or metabolic parameters  
+- General review statements without disease-specific evidence  
+- Hypothesis-only or conceptual papers  
 
-e.g. GD1a antibodies in multiple sclerosis
 
-myo-inositol as a marker of gliosis in chronic MS lesions
+## Repository Structure
 
-HgCl₂ inducing autoimmune disease in animal models
-
-Non-annotatable contexts, including:
-
-experimental triggers or positive controls (e.g. cyclophosphamide, pristane)
-
-therapeutic or tolerizing interventions (e.g. DNA vaccines, peptides)
-
-diagnostic or imaging agents (e.g. gadolinium)
-
-routine clinical or metabolic parameters (e.g. cholesterol, bilirubin, creatine)
-
-general review statements or hypothesis-only papers
-
-4. Ontology and identifier control
-
-I validated entity identifiers (MeSH) and avoided incorrect mappings by:
-
-preferring parent MeSH terms when specific molecular variants lacked descriptors
-
-excluding entities whose identifiers corresponded to unrelated concepts
-
-This ensured ontology consistency and downstream usability.
