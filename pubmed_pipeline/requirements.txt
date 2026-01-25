@@ -1,0 +1,5 @@
+requests>=2.31.0
+spacy>=3.7.2
+scispacy>=0.5.4
+mypy>=1.19.1
+types-requests>=2.32.4
