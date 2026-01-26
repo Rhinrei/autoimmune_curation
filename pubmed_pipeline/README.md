@@ -26,13 +26,13 @@ pip install -r requirements.txt
 Fetch by a list of PMIDs:
 
 ```bash
-python fetch_pubmed.py --pmids sample_pmids.txt --email you@example.com --out data/abstracts.jsonl
+python src/fetch_pubmed.py --pmids data/sample_pmids.txt --email you@example.com --out data/abstracts.jsonl
 ```
 
 Fetch by search query:
 
 ```bash
-python fetch_pubmed.py --query "autoimmune disease[MeSH Terms] AND cytokine" --retmax 100 --email you@example.com --out data/abstracts.jsonl
+python src/fetch_pubmed.py --query "autoimmune disease[MeSH Terms] AND cytokine" --retmax 100 --email you@example.com --out data/abstracts.jsonl
 ```
 
 ## Candidate extraction (spaCy/scispaCy)
@@ -46,7 +46,7 @@ python -m pip install https://s3-us-west-2.amazonaws.com/ai2-s2-scispacy/release
 Run the extractor:
 
 ```bash
-python extract_candidates_spacy.py --in data/abstracts.jsonl --out data/candidates_spacy.jsonl --model en_ner_bc5cdr_md
+python src/extract_candidates_spacy.py --in data/abstracts.jsonl --out data/candidates_spacy.jsonl --model en_ner_bc5cdr_md
 ```
 
 ## Output schema
@@ -63,7 +63,7 @@ Each JSONL line represents one sentence:
 Export a CSV suitable for manual curation and downstream analysis:
 
 ```bash
-python export_pubtrends.py --in data/candidates_spacy.jsonl --out data/curation_export.csv
+python src/export_pubtrends.py --in data/candidates_spacy.jsonl --out data/curation_export.csv
 ```
 
 Export columns include placeholders for normalization and manual labels:

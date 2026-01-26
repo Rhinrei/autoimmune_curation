@@ -3,17 +3,12 @@ import json
 import os
 import re
 
-from typing import Dict, Iterable, List, Any
+from typing import Dict, Iterable, List, Any, Literal
 
 import spacy
 from spacy.tokens import Doc, Span
 
-
-def _read_jsonl(path: str) -> Iterable[Dict[str, Any]]:
-    with open(path, "r", encoding="utf-8") as handle:
-        for line in handle:
-            if line.strip():
-                yield json.loads(line)
+from io_utils import read_jsonl
 
 
 POSITIVE_CUES = re.compile(
@@ -61,7 +56,7 @@ def _score_row(
     return score
 
 
-def _polarity(sentence: str) -> str:
+def _polarity(sentence: str) -> Literal["negative", "speculative", "positive", "unknown"]:
     if NEGATION_CUES.search(sentence):
         return "negative"
     if HEDGE_CUES.search(sentence):
@@ -71,7 +66,7 @@ def _polarity(sentence: str) -> str:
     return "unknown"
 
 
-def main() -> None:
+def _build_arg_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         description="Extract sentence-level chemical-disease candidates with spaCy/scispaCy."
     )
@@ -87,11 +82,17 @@ def main() -> None:
         action="store_true",
         help="Print a brief summary after processing.",
     )
+    return parser
 
-    args = parser.parse_args()
 
-    nlp = spacy.load(args.model)
-    os.makedirs(os.path.dirname(args.out) or ".", exist_ok=True)
+def _extract_candidates(
+    in_path: str,
+    out_path: str,
+    model: str,
+    summary: bool,
+) -> None:
+    nlp = spacy.load(model)
+    os.makedirs(os.path.dirname(out_path) or ".", exist_ok=True)
 
     total_sentences = 0
     sentences_with_entities = 0
@@ -100,8 +101,8 @@ def main() -> None:
     score_min: float | None = None
     score_max: float | None = None
 
-    with open(args.out, "w", encoding="utf-8") as handle:
-        for record in _read_jsonl(args.in_path):
+    with open(out_path, "w", encoding="utf-8") as handle:
+        for record in read_jsonl(in_path):
             text = " ".join(
                 part for part in [record.get("title"), record.get("abstract")] if part
             )
@@ -141,7 +142,7 @@ def main() -> None:
                 score_min = score if score_min is None else min(score_min, score)
                 score_max = score if score_max is None else max(score_max, score)
 
-    if args.summary:
+    if summary:
         print(f"Total sentences: {total_sentences}")
         print(f"Sentences with any entities: {sentences_with_entities}")
         print(f"Sentences with pairs: {sentences_with_pairs}")
@@ -151,6 +152,11 @@ def main() -> None:
             print("Polarity counts:")
             for key in sorted(polarity_counts.keys()):
                 print(f"  {key}: {polarity_counts[key]}")
+
+
+def main() -> None:
+    args = _build_arg_parser().parse_args()
+    _extract_candidates(args.in_path, args.out, args.model, args.summary)
 
 
 if __name__ == "__main__":

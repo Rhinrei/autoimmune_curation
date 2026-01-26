@@ -117,7 +117,7 @@ def fetch_records(
         time.sleep(throttle_seconds)
 
 
-def main() -> None:
+def _build_arg_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         description="Fetch PubMed abstracts by PMID list or search query."
     )
@@ -132,31 +132,51 @@ def main() -> None:
     parser.add_argument("--api-key", help="NCBI API key to increase rate limits.")
     parser.add_argument("--chunk-size", type=int, default=DEFAULT_CHUNK_SIZE)
     parser.add_argument("--throttle", type=float, default=0.35)
+    return parser
 
-    args = parser.parse_args()
+
+def _collect_pmids(
+    pmids_path: Optional[str],
+    query: Optional[str],
+    retmax: int,
+    email: str,
+    api_key: Optional[str],
+) -> List[str]:
+    pmids: List[str] = []
+    if pmids_path:
+        pmids.extend(_read_pmids(pmids_path))
+    if query:
+        pmids.extend(_esearch(query, retmax, email, api_key))
+    pmids = _unique(pmids)
+    if not pmids:
+        raise SystemExit("No PMIDs found for the given input.")
+    return pmids
+
+
+def _write_abstracts(
+    out_path: str,
+    pmids: List[str],
+    email: str,
+    api_key: Optional[str],
+    chunk_size: int,
+    throttle_seconds: float,
+) -> None:
+    os.makedirs(os.path.dirname(out_path) or ".", exist_ok=True)
+    with open(out_path, "w", encoding="utf-8") as handle:
+        for record in fetch_records(pmids, email, api_key, chunk_size, throttle_seconds):
+            handle.write(json.dumps(record, ensure_ascii=False) + "\n")
+
+
+def main() -> None:
+    args = _build_arg_parser().parse_args()
     email = _env_or_arg(args.email, "NCBI_EMAIL")
     api_key = _env_or_arg(args.api_key, "NCBI_API_KEY")
 
     if not email:
         raise SystemExit("Missing --email or NCBI_EMAIL environment variable.")
 
-    pmids = []
-    if args.pmids:
-        pmids.extend(_read_pmids(args.pmids))
-    if args.query:
-        pmids.extend(_esearch(args.query, args.retmax, email, api_key))
-
-    pmids = _unique(pmids)
-    if not pmids:
-        raise SystemExit("No PMIDs found for the given input.")
-
-    os.makedirs(os.path.dirname(args.out) or ".", exist_ok=True)
-    with open(args.out, "w", encoding="utf-8") as handle:
-        for record in fetch_records(
-            pmids, email, api_key, args.chunk_size, args.throttle
-        ):
-            handle.write(json.dumps(record, ensure_ascii=False) + "\n")
-
+    pmids = _collect_pmids(args.pmids, args.query, args.retmax, email, api_key)
+    _write_abstracts(args.out, pmids, email, api_key, args.chunk_size, args.throttle)
     print(f"Wrote {len(pmids)} records to {args.out}")
 
 

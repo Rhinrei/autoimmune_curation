@@ -1,15 +1,9 @@
 import argparse
 import csv
-import json
 import os
 from typing import Dict, Iterable, Any
 
-
-def _read_jsonl(path: str) -> Iterable[Dict[str, Any]]:
-    with open(path, "r", encoding="utf-8") as handle:
-        for line in handle:
-            if line.strip():
-                yield json.loads(line)
+from io_utils import read_jsonl
 
 
 def main() -> None:
@@ -44,7 +38,7 @@ def main() -> None:
         writer = csv.DictWriter(handle, fieldnames=fieldnames)
         writer.writeheader()
 
-        for row in _read_jsonl(args.in_path):
+        for row in read_jsonl(args.in_path):
             pairs = row.get("pairs") or []
             if not pairs and not args.include_no_pairs:
                 continue
