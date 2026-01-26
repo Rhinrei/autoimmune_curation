@@ -1,6 +1,6 @@
-# PubMed Chemical-Disease Curation (Minimal Pipeline)
+# PubMed Chemical-Disease Curation
 
-This folder contains a small Python pipeline to download PubMed abstracts,
+This folder contains a Python pipeline to download PubMed abstracts,
 extract CHEMICAL/DISEASE mentions, and generate candidate relations with
 evidence sentences plus light polarity/score signals for manual curation.
 
@@ -26,13 +26,13 @@ pip install -r requirements.txt
 Fetch by a list of PMIDs:
 
 ```bash
-python src/fetch_pubmed.py --pmids data/sample_pmids.txt --email you@example.com --out data/abstracts.jsonl
+python pubmed_pipeline/src/fetch_pubmed.py --pmids pubmed_pipeline/data/sample_pmids.txt --email you@example.com --out pubmed_pipeline/data/abstracts.jsonl
 ```
 
 Fetch by search query:
 
 ```bash
-python src/fetch_pubmed.py --query "autoimmune disease[MeSH Terms] AND cytokine" --retmax 100 --email you@example.com --out data/abstracts.jsonl
+python pubmed_pipeline/src/fetch_pubmed.py --query "autoimmune disease[MeSH Terms] AND cytokine" --retmax 100 --email you@example.com --out pubmed_pipeline/data/abstracts.jsonl
 ```
 
 ## Candidate extraction (spaCy/scispaCy)
@@ -46,7 +46,7 @@ python -m pip install https://s3-us-west-2.amazonaws.com/ai2-s2-scispacy/release
 Run the extractor:
 
 ```bash
-python src/extract_candidates_spacy.py --in data/abstracts.jsonl --out data/candidates_spacy.jsonl --model en_ner_bc5cdr_md
+python pubmed_pipeline/src/extract_candidates_spacy.py --in pubmed_pipeline/data/abstracts.jsonl --out pubmed_pipeline/data/candidates_spacy.jsonl --model en_ner_bc5cdr_md
 ```
 
 ## Output schema
@@ -55,7 +55,7 @@ Each JSONL line represents one sentence:
 - `pmid`, `sentence`
 - `chemicals`, `diseases`
 - `pairs` (all chemical-disease combinations in the sentence)
-- `score` (light heuristic ranking)
+- `score` (heuristic ranking)
 - `polarity_guess` (positive/negative/speculative/unknown)
 
 ## PubTrends-style export
@@ -63,19 +63,19 @@ Each JSONL line represents one sentence:
 Export a CSV suitable for manual curation and downstream analysis:
 
 ```bash
-python src/export_pubtrends.py --in data/candidates_spacy.jsonl --out data/curation_export.csv
+python pubmed_pipeline/src/export_pubtrends.py --in pubmed_pipeline/data/candidates_spacy.jsonl --out pubmed_pipeline/data/curation_export.csv
 ```
 
 Export columns include placeholders for normalization and manual labels:
 `chemical_norm_id`, `disease_norm_id`, `manual_label`, `manual_confidence`, `error_type`.
 
-## Annotation principles (compact)
+## Annotation principles
 
 Valid relations require explicit disease-relevant evidence, not just
 therapeutic use, experimental triggers, or hypothesis-only statements.
 Negative evidence should be preserved and marked as such.
 
-## Error taxonomy (compact)
+## Error taxonomy
 
 - therapeutic use (drug treats disease, not a mechanism/marker)
 - experimental trigger/control (induces phenotype only as a model)
